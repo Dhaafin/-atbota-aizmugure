@@ -10,8 +10,11 @@ export const openai =
   globalForOpenAI.openai ||
   new OpenAI({
     apiKey: process.env.OPENAI_API_KEY,
+    baseURL: process.env.OPENAI_BASE_URL || undefined,
   });
 
 if (process.env.NODE_ENV !== "production") {
   globalForOpenAI.openai = openai;
 }
+
+export const aiModel = process.env.OPENAI_MODEL;
