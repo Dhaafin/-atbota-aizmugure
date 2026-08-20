@@ -6,8 +6,6 @@ export const sessions = pgTable("sessions", {
   id: varchar("id", { length: 255 }).primaryKey(),
   phoneNumber: varchar("phone_number", { length: 50 }),
   contactName: varchar("contact_name", { length: 255 }),
-  pdfName: varchar("pdf_name", { length: 255 }),
-  pdfText: text("pdf_text"),
   metadata: jsonb("metadata"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
