@@ -139,6 +139,45 @@ export const openApiSpec = {
                 type: "object",
                 description: "Standard WhatsApp Webhook event payload schema",
               },
+              example: {
+                object: "whatsapp_business_account",
+                entry: [
+                  {
+                    id: "WHATSAPP_BUSINESS_ACCOUNT_ID",
+                    changes: [
+                      {
+                        value: {
+                          messaging_product: "whatsapp",
+                          metadata: {
+                            display_phone_number: "BOT_PHONE_NUMBER",
+                            phone_number_id: "BOT_PHONE_NUMBER_ID",
+                          },
+                          contacts: [
+                            {
+                              profile: {
+                                name: "SENDER_NAME",
+                              },
+                              wa_id: "SENDER_PHONE_NUMBER",
+                            },
+                          ],
+                          messages: [
+                            {
+                              from: "SENDER_PHONE_NUMBER",
+                              id: "MESSAGE_ID",
+                              timestamp: "1672531199",
+                              text: {
+                                body: "MESSAGE_TEXT",
+                              },
+                              type: "text",
+                            },
+                          ],
+                        },
+                        field: "messages",
+                      },
+                    ],
+                  },
+                ],
+              },
             },
           },
         },
