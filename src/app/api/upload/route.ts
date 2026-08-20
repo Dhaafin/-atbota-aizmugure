@@ -1,0 +1,89 @@
+import { NextRequest, NextResponse } from "next/server";
+import { db } from "@/db";
+import { knowledge } from "@/db/schema";
+const pdf = require("pdf-parse");
+
+export async function POST(req: NextRequest) {
+  const origin = req.headers.get("origin") || "";
+  const allowedOrigin = process.env.ALLOWED_ORIGIN || "";
+
+  const headers: Record<string, string> = {
+    "Access-Control-Allow-Methods": "POST, OPTIONS",
+    "Access-Control-Allow-Headers": "Content-Type",
+  };
+
+  if (allowedOrigin && origin !== allowedOrigin) {
+    return NextResponse.json({ error: "Forbidden" }, { status: 403, headers });
+  }
+
+  if (origin) {
+    headers["Access-Control-Allow-Origin"] = origin;
+  }
+
+  try {
+    const formData = await req.formData();
+    const file = formData.get("file") as File | null;
+
+    if (!file) {
+      return NextResponse.json({ error: "No file uploaded" }, { status: 400, headers });
+    }
+
+    if (file.type !== "application/pdf") {
+      return NextResponse.json({ error: "Only PDF files are allowed" }, { status: 400, headers });
+    }
+
+    if (file.size > 4 * 1024 * 1024) {
+      return NextResponse.json({ error: "File size exceeds 4MB limit" }, { status: 413, headers });
+    }
+
+    const arrayBuffer = await file.arrayBuffer();
+    const buffer = Buffer.from(arrayBuffer);
+    const parsedData = await pdf(buffer);
+
+    const cleanedText = parsedData.text.replace(/\s+/g, " ").trim();
+
+    await db.delete(knowledge);
+
+    const [newDoc] = await db
+      .insert(knowledge)
+      .values({
+        fileName: file.name,
+        pdfText: cleanedText,
+        metadata: {
+          size: file.size,
+          type: file.type,
+          uploadedAt: new Date().toISOString(),
+        },
+      })
+      .returning();
+
+    return NextResponse.json(
+      {
+        success: true,
+        id: newDoc.id,
+        fileName: newDoc.fileName,
+      },
+      { status: 200, headers }
+    );
+  } catch (error) {
+    console.error(error);
+    return NextResponse.json({ error: "Internal Server Error" }, { status: 500, headers });
+  }
+}
+
+export async function OPTIONS(req: NextRequest) {
+  const origin = req.headers.get("origin") || "";
+  const allowedOrigin = process.env.ALLOWED_ORIGIN || "";
+
+  const headers: Record<string, string> = {
+    "Access-Control-Allow-Methods": "POST, OPTIONS",
+    "Access-Control-Allow-Headers": "Content-Type",
+    "Access-Control-Max-Age": "86400",
+  };
+
+  if (origin && (!allowedOrigin || origin === allowedOrigin)) {
+    headers["Access-Control-Allow-Origin"] = origin;
+  }
+
+  return new Response(null, { status: 204, headers });
+}
