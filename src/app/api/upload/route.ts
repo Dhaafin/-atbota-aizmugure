@@ -1,7 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/db";
 import { knowledge } from "@/db/schema";
-const pdf = require("pdf-parse");
+import "pdf-parse/worker";
+import { PDFParse } from "pdf-parse";
 
 export async function POST(req: NextRequest) {
   try {
@@ -22,9 +23,12 @@ export async function POST(req: NextRequest) {
 
     const arrayBuffer = await file.arrayBuffer();
     const buffer = Buffer.from(arrayBuffer);
-    const parsedData = await pdf(buffer);
 
-    const cleanedText = parsedData.text.replace(/\s+/g, " ").trim();
+    const parser = new PDFParse({ data: buffer });
+    const result = await parser.getText();
+    await parser.destroy();
+
+    const cleanedText = result.text.replace(/\s+/g, " ").trim();
 
     await db.delete(knowledge);
 
