@@ -28,3 +28,12 @@ export const messages = pgTable(
     index("session_id_created_at_idx").on(table.sessionId, table.createdAt),
   ]
 );
+
+export const knowledge = pgTable("knowledge", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  fileName: varchar("file_name", { length: 255 }).notNull(),
+  pdfText: text("pdf_text").notNull(),
+  metadata: jsonb("metadata"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
