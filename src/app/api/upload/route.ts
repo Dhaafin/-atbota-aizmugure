@@ -4,36 +4,20 @@ import { knowledge } from "@/db/schema";
 const pdf = require("pdf-parse");
 
 export async function POST(req: NextRequest) {
-  const origin = req.headers.get("origin") || "";
-  const allowedOrigin = process.env.ALLOWED_ORIGIN || "";
-
-  const headers: Record<string, string> = {
-    "Access-Control-Allow-Methods": "POST, OPTIONS",
-    "Access-Control-Allow-Headers": "Content-Type",
-  };
-
-  if (allowedOrigin && origin !== allowedOrigin) {
-    return NextResponse.json({ error: "Forbidden" }, { status: 403, headers });
-  }
-
-  if (origin) {
-    headers["Access-Control-Allow-Origin"] = origin;
-  }
-
   try {
     const formData = await req.formData();
     const file = formData.get("file") as File | null;
 
     if (!file) {
-      return NextResponse.json({ error: "No file uploaded" }, { status: 400, headers });
+      return NextResponse.json({ error: "No file uploaded" }, { status: 400 });
     }
 
     if (file.type !== "application/pdf") {
-      return NextResponse.json({ error: "Only PDF files are allowed" }, { status: 400, headers });
+      return NextResponse.json({ error: "Only PDF files are allowed" }, { status: 400 });
     }
 
     if (file.size > 4 * 1024 * 1024) {
-      return NextResponse.json({ error: "File size exceeds 4MB limit" }, { status: 413, headers });
+      return NextResponse.json({ error: "File size exceeds 4MB limit" }, { status: 413 });
     }
 
     const arrayBuffer = await file.arrayBuffer();
@@ -63,27 +47,10 @@ export async function POST(req: NextRequest) {
         id: newDoc.id,
         fileName: newDoc.fileName,
       },
-      { status: 200, headers }
+      { status: 200 }
     );
   } catch (error) {
     console.error(error);
-    return NextResponse.json({ error: "Internal Server Error" }, { status: 500, headers });
+    return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
   }
-}
-
-export async function OPTIONS(req: NextRequest) {
-  const origin = req.headers.get("origin") || "";
-  const allowedOrigin = process.env.ALLOWED_ORIGIN || "";
-
-  const headers: Record<string, string> = {
-    "Access-Control-Allow-Methods": "POST, OPTIONS",
-    "Access-Control-Allow-Headers": "Content-Type",
-    "Access-Control-Max-Age": "86400",
-  };
-
-  if (origin && (!allowedOrigin || origin === allowedOrigin)) {
-    headers["Access-Control-Allow-Origin"] = origin;
-  }
-
-  return new Response(null, { status: 204, headers });
 }
