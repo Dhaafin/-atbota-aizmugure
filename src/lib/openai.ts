@@ -17,4 +17,4 @@ if (process.env.NODE_ENV !== "production") {
   globalForOpenAI.openai = openai;
 }
 
-export const aiModel = process.env.OPENAI_MODEL;
+export const aiModel = process.env.OPENAI_MODEL || "gpt-4o-mini";
