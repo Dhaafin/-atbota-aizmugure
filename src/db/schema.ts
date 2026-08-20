@@ -9,7 +9,9 @@ export const sessions = pgTable("sessions", {
   metadata: jsonb("metadata"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
-});
+}, (table) => [
+  index("sessions_phone_number_idx").on(table.phoneNumber),
+]);
 
 export const messages = pgTable(
   "messages",
