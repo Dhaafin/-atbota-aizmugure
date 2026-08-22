@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { eq } from "drizzle-orm";
 import { db } from "@/db";
 import { knowledge } from "@/db/schema";
 import "pdf-parse/worker";
@@ -21,6 +22,11 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "File size exceeds 4MB limit" }, { status: 413 });
     }
 
+    const existingDocs = await db.select({ id: knowledge.id }).from(knowledge);
+    if (existingDocs.length >= 5) {
+      return NextResponse.json({ error: "Maximum limit of 5 documents reached" }, { status: 400 });
+    }
+
     const arrayBuffer = await file.arrayBuffer();
     const buffer = Buffer.from(arrayBuffer);
 
@@ -29,8 +35,6 @@ export async function POST(req: NextRequest) {
     await parser.destroy();
 
     const cleanedText = result.text.replace(/\s+/g, " ").trim();
-
-    await db.delete(knowledge);
 
     const [newDoc] = await db
       .insert(knowledge)
@@ -58,3 +62,22 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
   }
 }
+
+export async function DELETE(req: NextRequest) {
+  try {
+    const { searchParams } = new URL(req.url);
+    const id = searchParams.get("id");
+
+    if (!id) {
+      return NextResponse.json({ error: "Missing document ID" }, { status: 400 });
+    }
+
+    await db.delete(knowledge).where(eq(knowledge.id, id));
+
+    return NextResponse.json({ success: true }, { status: 200 });
+  } catch (error) {
+    console.error(error);
+    return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
+  }
+}
+

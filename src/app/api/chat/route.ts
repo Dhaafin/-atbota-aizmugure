@@ -31,9 +31,8 @@ export async function POST(req: NextRequest) {
     const docs = await db
       .select()
       .from(knowledge)
-      .orderBy(desc(knowledge.createdAt))
-      .limit(1);
-    const pdfText = docs[0]?.pdfText || "";
+      .orderBy(desc(knowledge.createdAt));
+    const pdfText = docs.map((d) => `Document: ${d.fileName}\n${d.pdfText}`).join("\n\n---\n\n");
 
     const history = await db
       .select()

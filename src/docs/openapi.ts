@@ -54,6 +54,39 @@ export const openApiSpec = {
           500: { description: "Internal server error" },
         },
       },
+      delete: {
+        summary: "Delete company PDF",
+        description: "Deletes a specific PDF document from the knowledge base using its ID",
+        parameters: [
+          {
+            name: "id",
+            in: "query",
+            required: true,
+            description: "ID of the document to delete",
+            schema: {
+              type: "string",
+              format: "uuid",
+            },
+          },
+        ],
+        responses: {
+          200: {
+            description: "Document deleted successfully",
+            content: {
+              "application/json": {
+                schema: {
+                  type: "object",
+                  properties: {
+                    success: { type: "boolean" },
+                  },
+                },
+              },
+            },
+          },
+          400: { description: "Missing document ID" },
+          500: { description: "Internal server error" },
+        },
+      },
     },
     "/api/chat": {
       post: {
