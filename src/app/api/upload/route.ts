@@ -7,6 +7,44 @@ import { PDFParse } from "pdf-parse";
 
 export async function POST(req: NextRequest) {
   try {
+    const contentType = req.headers.get("content-type") || "";
+
+    if (contentType.includes("application/json")) {
+      const { fileName, text } = await req.json();
+
+      if (!fileName || !text) {
+        return NextResponse.json({ error: "fileName and text are required" }, { status: 400 });
+      }
+
+      const existingDocs = await db.select({ id: knowledge.id }).from(knowledge);
+      if (existingDocs.length >= 5) {
+        return NextResponse.json({ error: "Maximum limit of 5 documents reached" }, { status: 400 });
+      }
+
+      const [newDoc] = await db
+        .insert(knowledge)
+        .values({
+          fileName: fileName.trim(),
+          pdfText: text.trim(),
+          metadata: {
+            size: Buffer.byteLength(text),
+            type: "text/plain",
+            source: "direct_input",
+            uploadedAt: new Date().toISOString(),
+          },
+        })
+        .returning();
+
+      return NextResponse.json(
+        {
+          success: true,
+          id: newDoc.id,
+          fileName: newDoc.fileName,
+        },
+        { status: 200 }
+      );
+    }
+
     const formData = await req.formData();
     const file = formData.get("file") as File | null;
 
