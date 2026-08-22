@@ -6,8 +6,12 @@ import { sessions, messages } from "@/db/schema";
 export async function GET(req: NextRequest) {
   try {
     const search = req.nextUrl.searchParams.get("search") || "";
-    const limit = parseInt(req.nextUrl.searchParams.get("limit") || "20");
-    const offset = parseInt(req.nextUrl.searchParams.get("offset") || "0");
+    let limit = parseInt(req.nextUrl.searchParams.get("limit") || "20", 10);
+    let offset = parseInt(req.nextUrl.searchParams.get("offset") || "0", 10);
+
+    if (isNaN(limit) || limit <= 0) limit = 20;
+    if (limit > 100) limit = 100;
+    if (isNaN(offset) || offset < 0) offset = 0;
 
     const conditions = [];
     if (search) {
