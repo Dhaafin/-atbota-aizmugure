@@ -5,6 +5,11 @@ export const openApiSpec = {
     version: "1.0.0",
     description: "API Docs for chatbot integration with static company RAG PDF",
   },
+  security: [
+    {
+      ApiKeyAuth: [],
+    },
+  ],
   paths: {
     "/api/upload": {
       post: {
@@ -94,6 +99,7 @@ export const openApiSpec = {
     },
     "/api/whatsapp/webhook": {
       get: {
+        security: [],
         summary: "WhatsApp webhook verification",
         description: "Endpoint for Meta Graph API webhook token verification challenge",
         parameters: [
@@ -129,6 +135,7 @@ export const openApiSpec = {
         },
       },
       post: {
+        security: [],
         summary: "WhatsApp event processor",
         description: "Receives messaging events from WhatsApp Cloud API, answers using RAG, and posts replies back",
         requestBody: {
@@ -198,6 +205,16 @@ export const openApiSpec = {
           400: { description: "Invalid payload structure" },
           500: { description: "Internal server error" },
         },
+      },
+    },
+  },
+  components: {
+    securitySchemes: {
+      ApiKeyAuth: {
+        type: "apiKey",
+        in: "header",
+        name: "x-api-key",
+        description: "Custom static API Key for Chatbot Backend access validation",
       },
     },
   },
