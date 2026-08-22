@@ -81,3 +81,57 @@ export async function DELETE(req: NextRequest) {
   }
 }
 
+export async function GET(req: NextRequest) {
+  try {
+    const docs = await db.select({
+      id: knowledge.id,
+      fileName: knowledge.fileName,
+      metadata: knowledge.metadata,
+      createdAt: knowledge.createdAt,
+      updatedAt: knowledge.updatedAt,
+    }).from(knowledge);
+
+    return NextResponse.json(docs, { status: 200 });
+  } catch (error) {
+    console.error(error);
+    return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
+  }
+}
+
+export async function PATCH(req: NextRequest) {
+  try {
+    const { searchParams } = new URL(req.url);
+    const id = searchParams.get("id");
+
+    if (!id) {
+      return NextResponse.json({ error: "Missing document ID" }, { status: 400 });
+    }
+
+    const { fileName } = await req.json();
+    if (!fileName) {
+      return NextResponse.json({ error: "Missing new file name" }, { status: 400 });
+    }
+
+    const [updatedDoc] = await db
+      .update(knowledge)
+      .set({ 
+        fileName,
+        updatedAt: new Date(),
+      })
+      .where(eq(knowledge.id, id))
+      .returning({
+        id: knowledge.id,
+        fileName: knowledge.fileName,
+      });
+
+    if (!updatedDoc) {
+      return NextResponse.json({ error: "Document not found" }, { status: 404 });
+    }
+
+    return NextResponse.json({ success: true, document: updatedDoc }, { status: 200 });
+  } catch (error) {
+    console.error(error);
+    return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
+  }
+}
+

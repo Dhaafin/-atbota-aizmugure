@@ -87,6 +87,91 @@ export const openApiSpec = {
           500: { description: "Internal server error" },
         },
       },
+      get: {
+        summary: "List company PDFs",
+        description: "Retrieves the list of uploaded PDF metadata, excluding the heavy pdfText content",
+        responses: {
+          200: {
+            description: "Successfully retrieved list of documents",
+            content: {
+              "application/json": {
+                schema: {
+                  type: "array",
+                  items: {
+                    type: "object",
+                    properties: {
+                      id: { type: "string", format: "uuid" },
+                      fileName: { type: "string" },
+                      metadata: { type: "object" },
+                      createdAt: { type: "string", format: "date-time" },
+                      updatedAt: { type: "string", format: "date-time" },
+                    },
+                  },
+                },
+              },
+            },
+          },
+          500: { description: "Internal server error" },
+        },
+      },
+      patch: {
+        summary: "Rename company PDF",
+        description: "Updates the metadata file name for a PDF document",
+        parameters: [
+          {
+            name: "id",
+            in: "query",
+            required: true,
+            description: "ID of the document to rename",
+            schema: {
+              type: "string",
+              format: "uuid",
+            },
+          },
+        ],
+        requestBody: {
+          required: true,
+          content: {
+            "application/json": {
+              schema: {
+                type: "object",
+                properties: {
+                  fileName: {
+                    type: "string",
+                    description: "New name for the file",
+                  },
+                },
+                required: ["fileName"],
+              },
+            },
+          },
+        },
+        responses: {
+          200: {
+            description: "Document metadata updated successfully",
+            content: {
+              "application/json": {
+                schema: {
+                  type: "object",
+                  properties: {
+                    success: { type: "boolean" },
+                    document: {
+                      type: "object",
+                      properties: {
+                        id: { type: "string", format: "uuid" },
+                        fileName: { type: "string" },
+                      },
+                    },
+                  },
+                },
+              },
+            },
+          },
+          400: { description: "Missing document ID or file name" },
+          404: { description: "Document not found" },
+          500: { description: "Internal server error" },
+        },
+      },
     },
     "/api/chat": {
       post: {
