@@ -95,15 +95,20 @@ Aturan RAG:
 Context:
 ${pdfText}`;
 
+    if (formattedMessages.length > 0) {
+      const lastIdx = formattedMessages.length - 1;
+      if (formattedMessages[lastIdx].role === "user") {
+        formattedMessages[lastIdx].content = `${formattedMessages[lastIdx].content}
+
+[Aturan: Jawablah pertanyaan terbaru di atas secara spesifik HANYA berdasarkan konteks dokumen. Jangan mengulangi jawaban asisten sebelumnya jika topiknya berbeda. Jika tidak ada informasi tentang entitas yang ditanyakan, katakan secara sopan bahwa Anda tidak tahu. Jangan mengarang jawaban.]`;
+      }
+    }
+
     const stream = await openai.chat.completions.create({
       model: aiModel,
       messages: [
         { role: "system", content: systemPrompt },
         ...formattedMessages,
-        {
-          role: "system" as const,
-          content: "PENTING: Jawablah pertanyaan terbaru di atas secara spesifik HANYA berdasarkan konteks dokumen. Jangan mengulangi jawaban asisten sebelumnya jika topiknya berbeda. Jika tidak ada informasi tentang entitas yang ditanyakan, katakan secara sopan bahwa Anda tidak tahu.",
-        },
       ],
       temperature: 0.1,
       stream: true,
