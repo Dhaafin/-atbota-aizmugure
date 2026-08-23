@@ -2,6 +2,7 @@ import { uploadPaths } from "./paths/upload";
 import { chatPaths } from "./paths/chat";
 import { whatsappPaths } from "./paths/whatsapp";
 import { sessionsPaths } from "./paths/sessions";
+import { configPaths } from "./paths/config";
 import { securitySchemes } from "./components";
 
 export const openApiSpec = {
@@ -21,8 +22,10 @@ export const openApiSpec = {
     ...chatPaths,
     ...whatsappPaths,
     ...sessionsPaths,
+    ...configPaths,
   },
   components: {
     securitySchemes,
   },
 };
+
