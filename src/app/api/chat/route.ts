@@ -53,8 +53,10 @@ export async function POST(req: NextRequest) {
       .select()
       .from(messages)
       .where(eq(messages.sessionId, sessionId))
-      .orderBy(asc(messages.createdAt))
+      .orderBy(desc(messages.createdAt))
       .limit(10);
+
+    history.reverse();
 
     const isFirstExchange = history.length === 1;
 
