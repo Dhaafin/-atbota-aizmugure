@@ -55,10 +55,14 @@ export async function POST(req: NextRequest) {
       .orderBy(asc(messages.createdAt))
       .limit(10);
 
-    const formattedMessages = history.map((msg) => ({
+    let formattedMessages = history.map((msg) => ({
       role: msg.role as "user" | "assistant" | "system",
       content: msg.content,
     }));
+
+    if (formattedMessages.length > 0 && formattedMessages[0].role === "assistant") {
+      formattedMessages = formattedMessages.slice(1);
+    }
 
     const configs = await db.select().from(botConfig).limit(1);
     const config = configs[0] || {
@@ -93,6 +97,10 @@ ${pdfText}`;
       messages: [
         { role: "system", content: systemPrompt },
         ...formattedMessages,
+        {
+          role: "system" as const,
+          content: "PENTING: Jawablah pertanyaan terbaru di atas secara spesifik HANYA berdasarkan konteks dokumen. Jangan mengulangi jawaban asisten sebelumnya jika topiknya berbeda. Jika tidak ada informasi tentang entitas yang ditanyakan, katakan secara sopan bahwa Anda tidak tahu.",
+        },
       ],
       temperature: 0.1,
       stream: true,
