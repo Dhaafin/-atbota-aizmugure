@@ -4,6 +4,7 @@ import { db } from "@/db";
 import { sessions, messages, knowledge, botConfig } from "@/db/schema";
 import { openai, aiModel } from "@/lib/openai";
 import { generateAndSaveChatTitle } from "@/lib/title-generator";
+import { updateSessionSummary } from "@/lib/session-summarizer";
 
 export async function POST(req: NextRequest) {
   try {
@@ -88,6 +89,10 @@ export async function POST(req: NextRequest) {
          - Sajikan informasi secara terstruktur dengan tata bahasa yang rapi (gunakan poin-poin/list jika menjelaskan lebih dari dua poin).
          - Berikan penjelasan ringkas mengenai tujuan atau manfaat dari layanan yang ditanyakan agar jawaban tetap informatif dan berbobot.`;
 
+    const sessionSummaryContext = existingSession[0]?.summary
+      ? `\n\n[MEMORI OBROLAN SEBELUMNYA]\nAI harus mengingat rangkuman interaksi sebelumnya ini:\n${existingSession[0].summary}`
+      : "";
+
     const systemPrompt = `Nama Anda adalah ${config.botName}. Anda adalah asisten AI layanan pelanggan resmi untuk biro TCU.
 
 Gaya Komunikasi: ${personaStyle}
@@ -100,7 +105,7 @@ Aturan RAG:
 - Jawab pertanyaan pengguna HANYA berdasarkan konteks dokumen di bawah ini.
 - Harap membaca konteks dokumen dengan sangat teliti. Bedakan setiap entitas/nama staf (misalnya Direktur, Wakil Direktur, Asesor, Staff Administrasi) dengan jelas. Jangan mencampuradukkan profil, kualifikasi, atau latar belakang satu orang dengan orang lain.
 - Cari secara spesifik topik atau entitas yang ditanyakan pada pesan terbaru pengguna.
-- Jika Anda tidak mengetahui jawabannya dari dokumen, katakan secara sopan bahwa Anda tidak tahu. Jangan pernah berhalusinasi atau mengarang informasi.
+- Jika Anda tidak mengetahui jawabannya dari dokumen, katakan secara sopan bahwa Anda tidak tahu. Jangan pernah berhalusinasi atau mengarang informasi.${sessionSummaryContext}
 
 Context:
 ${pdfText}`;
@@ -147,6 +152,15 @@ ${pdfText}`;
               generateAndSaveChatTitle(sessionId, message, fullResponseText).catch(
                 (err) => console.error("Title generation background task error:", err)
               );
+            } else {
+              const totalMessages = history.length + 2;
+              if (totalMessages >= 4 && totalMessages % 4 === 0) {
+                updateSessionSummary(
+                  sessionId,
+                  existingSession[0]?.summary || null,
+                  [...formattedMessages, { role: "assistant", content: fullResponseText }]
+                ).catch((err) => console.error("Summary generation background task error:", err));
+              }
             }
           }
         } catch (error) {
