@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { eq, desc, asc } from "drizzle-orm";
 import { db } from "@/db";
-import { sessions, messages, knowledge } from "@/db/schema";
+import { sessions, messages, knowledge, botConfig } from "@/db/schema";
 import { openai, aiModel } from "@/lib/openai";
 
 export async function GET(req: NextRequest) {
@@ -78,7 +78,31 @@ export async function POST(req: NextRequest) {
       content: msg.content,
     }));
 
-    const systemPrompt = `You are a helpful customer support assistant. Answer questions based only on the following context. If you do not know the answer, say that you do not know.\n\nContext: ${pdfText}`;
+    const configs = await db.select().from(botConfig).limit(1);
+    const config = configs[0] || {
+      botName: "Asisten AI",
+      persona: "friendly",
+      welcomeMessage: "Halo! Ada yang bisa saya bantu hari ini?",
+    };
+
+    const personaStyle = config.persona === "friendly"
+      ? "Gunakan nada bicara yang ramah, hangat, empatis, dan membantu."
+      : "Gunakan nada bicara yang formal, profesional, jelas, dan lugas.";
+
+    const systemPrompt = `Nama Anda adalah ${config.botName}. Anda adalah asisten AI layanan pelanggan resmi untuk biro TCU.
+
+Gaya Komunikasi: ${personaStyle}
+
+Aturan Identitas:
+- Jika pengguna bertanya tentang siapa pembuat Anda, katakan bahwa Anda dikembangkan oleh tim IT internal TCU.
+- DILARANG menyebutkan kata "OpenAI", "ChatGPT", atau "GPT-4" dalam situasi apa pun. Jika ditanya mengenai model dasar, jawablah secara diplomatis bahwa Anda adalah asisten AI khusus TCU.
+
+Aturan RAG:
+- Jawab pertanyaan pengguna HANYA berdasarkan konteks dokumen di bawah ini.
+- Jika Anda tidak mengetahui jawabannya dari dokumen, katakan secara sopan bahwa Anda tidak tahu.
+
+Context:
+${pdfText}`;
 
     const response = await openai.chat.completions.create({
       model: aiModel,

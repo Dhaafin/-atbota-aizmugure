@@ -1,4 +1,4 @@
-import { pgTable, pgEnum, varchar, text, timestamp, uuid, jsonb, index } from "drizzle-orm/pg-core";
+import { pgTable, pgEnum, varchar, text, timestamp, uuid, jsonb, index, serial } from "drizzle-orm/pg-core";
 
 export const roleEnum = pgEnum("role_enum", ["user", "assistant", "system"]);
 
@@ -37,3 +37,12 @@ export const knowledge = pgTable("knowledge", {
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });
+
+export const botConfig = pgTable("bot_config", {
+  id: serial("id").primaryKey(),
+  botName: varchar("bot_name", { length: 100 }).default("Asisten AI").notNull(),
+  persona: varchar("persona", { length: 50 }).default("friendly").notNull(), // friendly | professional
+  welcomeMessage: text("welcome_message").default("Halo! Ada yang bisa saya bantu hari ini?").notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
