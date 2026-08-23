@@ -3,6 +3,7 @@ import { eq, desc, asc } from "drizzle-orm";
 import { db } from "@/db";
 import { sessions, messages, knowledge, botConfig } from "@/db/schema";
 import { openai, aiModel } from "@/lib/openai";
+import { generateAndSaveChatTitle } from "@/lib/title-generator";
 
 export async function POST(req: NextRequest) {
   try {
@@ -54,6 +55,8 @@ export async function POST(req: NextRequest) {
       .where(eq(messages.sessionId, sessionId))
       .orderBy(asc(messages.createdAt))
       .limit(10);
+
+    const isFirstExchange = history.length === 1;
 
     let formattedMessages = history.map((msg) => ({
       role: msg.role as "user" | "assistant" | "system",
@@ -124,6 +127,12 @@ ${pdfText}`;
               role: "assistant",
               content: fullResponseText,
             });
+
+            if (isFirstExchange) {
+              generateAndSaveChatTitle(sessionId, message, fullResponseText).catch(
+                (err) => console.error("Title generation background task error:", err)
+              );
+            }
           }
         } catch (error) {
           controller.error(error);

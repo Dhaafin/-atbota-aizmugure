@@ -3,6 +3,7 @@ import { eq, desc, asc } from "drizzle-orm";
 import { db } from "@/db";
 import { sessions, messages, knowledge, botConfig } from "@/db/schema";
 import { openai, aiModel } from "@/lib/openai";
+import { generateAndSaveChatTitle } from "@/lib/title-generator";
 
 export async function GET(req: NextRequest) {
   const { searchParams } = new URL(req.url);
@@ -73,6 +74,8 @@ export async function POST(req: NextRequest) {
       .orderBy(asc(messages.createdAt))
       .limit(10);
 
+    const isFirstExchange = history.length === 1;
+
     let formattedMessages = history.map((msg) => ({
       role: msg.role as "user" | "assistant" | "system",
       content: msg.content,
@@ -131,6 +134,12 @@ ${pdfText}`;
         role: "assistant",
         content: replyText,
       });
+
+      if (isFirstExchange) {
+        generateAndSaveChatTitle(sender, messageText, replyText).catch((err) =>
+          console.error("Title generation background task error:", err)
+        );
+      }
 
       const waResponse = await fetch(
         `https://graph.facebook.com/v20.0/${phoneId}/messages`,

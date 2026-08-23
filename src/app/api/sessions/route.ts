@@ -51,6 +51,7 @@ export async function GET(req: NextRequest) {
     const sessionsList = await db
       .select({
         id: sessions.id,
+        title: sessions.title,
         phoneNumber: sessions.phoneNumber,
         contactName: sessions.contactName,
         createdAt: sessions.createdAt,
@@ -79,6 +80,7 @@ export async function GET(req: NextRequest) {
 
     const formattedSessions = sessionsList.map((row) => ({
       id: row.id,
+      title: row.title,
       phoneNumber: row.phoneNumber,
       contactName: row.contactName,
       createdAt: row.createdAt,

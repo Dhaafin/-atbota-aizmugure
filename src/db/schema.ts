@@ -4,6 +4,7 @@ export const roleEnum = pgEnum("role_enum", ["user", "assistant", "system"]);
 
 export const sessions = pgTable("sessions", {
   id: varchar("id", { length: 255 }).primaryKey(),
+  title: varchar("title", { length: 255 }),
   phoneNumber: varchar("phone_number", { length: 50 }),
   contactName: varchar("contact_name", { length: 255 }),
   metadata: jsonb("metadata"),
