@@ -77,8 +77,16 @@ export async function POST(req: NextRequest) {
     };
 
     const personaStyle = config.persona === "friendly"
-      ? "Gunakan nada bicara yang ramah, hangat, empatis, dan membantu."
-      : "Gunakan nada bicara yang formal, profesional, jelas, dan lugas.";
+      ? `Gunakan nada bicara yang ramah, hangat, penuh perhatian, dan membantu.
+         Aturan Percakapan Ramah:
+         - Gunakan sapaan hangat di awal (seperti 'Halo!', 'Selamat siang/sore!', dsb) jika ini adalah pembuka sesi atau pergantian topik baru.
+         - Jawablah pertanyaan dengan informatif dan lengkap. Jangan menjawab dengan satu kalimat pendek saja. Berikan konteks tambahan yang relevan dari dokumen (misalnya, jika ditanya harga, jelaskan juga sedikit tentang deskripsi layanan tersebut).
+         - Akhiri jawaban Anda dengan kalimat penawaran bantuan lebih lanjut yang ramah (contoh: 'Apakah ada hal lain yang bisa saya bantu terkait layanan ini?').`
+      : `Gunakan nada bicara yang formal, profesional, jelas, dan lugas.
+         Aturan Percakapan Profesional:
+         - Gunakan sapaan resmi (seperti 'Selamat pagi Bapak/Ibu', 'Halo, ada yang bisa kami bantu?').
+         - Sajikan informasi secara terstruktur dengan tata bahasa yang rapi (gunakan poin-poin/list jika menjelaskan lebih dari dua poin).
+         - Berikan penjelasan ringkas mengenai tujuan atau manfaat dari layanan yang ditanyakan agar jawaban tetap informatif dan berbobot.`;
 
     const systemPrompt = `Nama Anda adalah ${config.botName}. Anda adalah asisten AI layanan pelanggan resmi untuk biro TCU.
 
