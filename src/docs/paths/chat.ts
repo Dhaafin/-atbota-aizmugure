@@ -18,6 +18,18 @@ export const chatPaths = {
                   type: "string",
                   description: "User input prompt",
                 },
+                contactName: {
+                  type: "string",
+                  description: "Optional contact display name for session registration",
+                },
+                phoneNumber: {
+                  type: "string",
+                  description: "Optional phone number for session registration",
+                },
+                metadata: {
+                  type: "object",
+                  description: "Optional custom key-value metadata for classifying the session (e.g. source channel)",
+                },
               },
               required: ["sessionId", "message"],
             },

@@ -6,7 +6,7 @@ import { openai, aiModel } from "@/lib/openai";
 
 export async function POST(req: NextRequest) {
   try {
-    const { sessionId, message } = await req.json();
+    const { sessionId, message, contactName, phoneNumber, metadata } = await req.json();
 
     if (!sessionId || !message) {
       return NextResponse.json({ error: "Session ID and message are required" }, { status: 400 });
@@ -19,7 +19,21 @@ export async function POST(req: NextRequest) {
       .limit(1);
 
     if (existingSession.length === 0) {
-      await db.insert(sessions).values({ id: sessionId });
+      await db.insert(sessions).values({
+        id: sessionId,
+        contactName: contactName || null,
+        phoneNumber: phoneNumber || null,
+        metadata: metadata || null,
+      });
+    } else if (contactName || phoneNumber || metadata) {
+      await db.update(sessions)
+        .set({
+          contactName: contactName || existingSession[0].contactName,
+          phoneNumber: phoneNumber || existingSession[0].phoneNumber,
+          metadata: metadata ? { ...(existingSession[0].metadata as object || {}), ...metadata } : existingSession[0].metadata,
+          updatedAt: new Date(),
+        })
+        .where(eq(sessions.id, sessionId));
     }
 
     await db.insert(messages).values({
