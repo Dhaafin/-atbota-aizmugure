@@ -81,7 +81,9 @@ Aturan Identitas:
 
 Aturan RAG:
 - Jawab pertanyaan pengguna HANYA berdasarkan konteks dokumen di bawah ini.
-- Jika Anda tidak mengetahui jawabannya dari dokumen, katakan secara sopan bahwa Anda tidak tahu.
+- Harap membaca konteks dokumen dengan sangat teliti. Bedakan setiap entitas/nama staf (misalnya Direktur, Wakil Direktur, Asesor, Staff Administrasi) dengan jelas. Jangan mencampuradukkan profil, kualifikasi, atau latar belakang satu orang dengan orang lain.
+- Cari secara spesifik topik atau entitas yang ditanyakan pada pesan terbaru pengguna.
+- Jika Anda tidak mengetahui jawabannya dari dokumen, katakan secara sopan bahwa Anda tidak tahu. Jangan pernah berhalusinasi atau mengarang informasi.
 
 Context:
 ${pdfText}`;
@@ -92,6 +94,7 @@ ${pdfText}`;
         { role: "system", content: systemPrompt },
         ...formattedMessages,
       ],
+      temperature: 0.1,
       stream: true,
     });
 

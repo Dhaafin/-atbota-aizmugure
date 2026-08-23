@@ -72,7 +72,11 @@ export async function POST(req: NextRequest) {
     const result = await parser.getText();
     await parser.destroy();
 
-    const cleanedText = result.text.replace(/\s+/g, " ").trim();
+    const cleanedText = result.text
+      .replace(/\r/g, "")
+      .replace(/[ \t]+/g, " ")
+      .replace(/\n\s*\n/g, "\n\n")
+      .trim();
 
     const [newDoc] = await db
       .insert(knowledge)
