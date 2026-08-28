@@ -45,6 +45,9 @@ export const botConfig = pgTable("bot_config", {
   botName: varchar("bot_name", { length: 100 }).default("Asisten AI").notNull(),
   persona: varchar("persona", { length: 50 }).default("friendly").notNull(), // friendly | professional
   welcomeMessage: text("welcome_message").default("Halo! Ada yang bisa saya bantu hari ini?").notNull(),
+  suggestions: jsonb("suggestions")
+    .default('["Layanan TCU apa saja?", "Alamat TCU di mana?", "Jam operasional?", "Biaya konseling?", "Saya mau daftar layanan"]')
+    .notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });
 

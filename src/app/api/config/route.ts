@@ -7,6 +7,13 @@ const DEFAULT_CONFIG = {
   botName: "Asisten AI",
   persona: "friendly",
   welcomeMessage: "Halo! Ada yang bisa saya bantu hari ini?",
+  suggestions: [
+    "Layanan TCU apa saja?",
+    "Alamat TCU di mana?",
+    "Jam operasional?",
+    "Biaya konseling?",
+    "Saya mau daftar layanan"
+  ],
 };
 
 export async function GET(req: NextRequest) {
@@ -30,7 +37,7 @@ export async function GET(req: NextRequest) {
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
-    const { botName, persona, welcomeMessage } = body;
+    const { botName, persona, welcomeMessage, suggestions } = body;
 
     if (!botName || !persona || !welcomeMessage) {
       return NextResponse.json(
@@ -39,7 +46,39 @@ export async function POST(req: NextRequest) {
       );
     }
 
+    // Security Input Validation for suggestions
+    if (suggestions !== undefined) {
+      if (!Array.isArray(suggestions)) {
+        return NextResponse.json(
+          { error: "Properti suggestions harus berupa Array." },
+          { status: 400 }
+        );
+      }
+      if (suggestions.length > 20) {
+        return NextResponse.json(
+          { error: "Saran pertanyaan maksimal berisi 20 item." },
+          { status: 400 }
+        );
+      }
+      const isValid = suggestions.every(
+        (item) =>
+          typeof item === "string" &&
+          item.trim().length > 0 &&
+          item.trim().length <= 100
+      );
+      if (!isValid) {
+        return NextResponse.json(
+          { error: "Setiap item saran harus berupa teks non-kosong maksimal 100 karakter." },
+          { status: 400 }
+        );
+      }
+    }
+
     const configs = await db.select().from(botConfig).limit(1);
+
+    const suggestionsData = suggestions !== undefined 
+      ? suggestions.map((item: string) => item.trim())
+      : DEFAULT_CONFIG.suggestions;
 
     if (configs.length > 0) {
       const [updated] = await db
@@ -48,6 +87,7 @@ export async function POST(req: NextRequest) {
           botName: botName.trim(),
           persona: persona.trim(),
           welcomeMessage: welcomeMessage.trim(),
+          suggestions: suggestionsData,
           updatedAt: new Date(),
         })
         .where(eq(botConfig.id, configs[0].id))
@@ -61,6 +101,7 @@ export async function POST(req: NextRequest) {
           botName: botName.trim(),
           persona: persona.trim(),
           welcomeMessage: welcomeMessage.trim(),
+          suggestions: suggestionsData,
         })
         .returning();
 
