@@ -46,6 +46,14 @@ export async function POST(req: NextRequest) {
       );
     }
 
+    const trimmedPersona = persona.trim();
+    if (trimmedPersona !== "friendly" && trimmedPersona !== "professional") {
+      return NextResponse.json(
+        { error: "Persona harus berupa 'friendly' atau 'professional'." },
+        { status: 400 }
+      );
+    }
+
     // Security Input Validation for suggestions
     if (suggestions !== undefined) {
       if (!Array.isArray(suggestions)) {
@@ -85,7 +93,7 @@ export async function POST(req: NextRequest) {
         .update(botConfig)
         .set({
           botName: botName.trim(),
-          persona: persona.trim(),
+          persona: trimmedPersona,
           welcomeMessage: welcomeMessage.trim(),
           suggestions: suggestionsData,
           updatedAt: new Date(),
@@ -99,7 +107,7 @@ export async function POST(req: NextRequest) {
         .insert(botConfig)
         .values({
           botName: botName.trim(),
-          persona: persona.trim(),
+          persona: trimmedPersona,
           welcomeMessage: welcomeMessage.trim(),
           suggestions: suggestionsData,
         })
